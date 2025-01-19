@@ -36,8 +36,6 @@ class ConnectManager {
       _connectionStateSubscription =
       StreamController<BluetoothConnectionState>();
 
-  late ReceiveType _currentReceiveType;
-
   //创建一个返回状态控制流
   late final StreamController<ReceiveType> _receiveType =
       StreamController<ReceiveType>();
