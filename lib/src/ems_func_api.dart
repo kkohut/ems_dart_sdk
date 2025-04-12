@@ -3,8 +3,8 @@ import 'package:dart_ems_sdk/entity/three_device_entity.dart';
 import 'package:flutter/foundation.dart';
 
 typedef CallBackThree = void Function(bool isSuccess, ThreeDeviceStatus three);
-typedef CallBackVersion = void Function(bool isSuccess, int version);
-typedef CallBackWriteStatus = void Function(bool isSuccess);
+typedef CallBackVersionThree = void Function(bool isSuccess, int version);
+typedef CallBackWriteStatusThree = void Function(bool isSuccess);
 
 /// 三路最大功率类型
 enum ThreeWayFrequencyType { one, two, three }
@@ -15,8 +15,7 @@ enum ThreeWayPulseWidthType { one, two, three }
 class EmsThreeFuncManager {
   /// 三路获取设备状态
   static Future<void> getDeviceStatus(CallBackThree callback) async {
-    ConnectManager
-        .getInstance()
+    ConnectManager.getInstance()
         .eventBus
         .on<ThreeDeviceStatus>()
         .listen((event) {
@@ -25,12 +24,8 @@ class EmsThreeFuncManager {
 
     List<int> getPower = [0xfe, 0x14, 0x00, 0x00];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(getPower,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(getPower,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -44,7 +39,7 @@ class EmsThreeFuncManager {
 
   /// 三路设备 发送工作时间和工作间隔
   static Future<void> sendDurationTime(int durationTime, int intervalTime,
-      CallBackWriteStatus callBackWriteStatus) async {
+      CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = (0x00 + durationTime + 0x00 + intervalTime) & 0xff;
     List<int> sentTime = [
       0xfe,
@@ -57,12 +52,8 @@ class EmsThreeFuncManager {
       valid
     ];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(sentTime,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(sentTime,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -77,17 +68,17 @@ class EmsThreeFuncManager {
 
   /// 三路设备 下发周期时间
   static Future<void> sendCycleTime(int durationTime, int intervalTime,
-      CallBackWriteStatus callBackWriteStatus) async {
+      CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = ((durationTime >> 24) &
-    0xff + (durationTime >> 16) &
-    0xff + (durationTime >> 8) &
-    0xff + durationTime &
-    0xff + (intervalTime >> 24) &
-    0xff + (intervalTime >> 16) &
-    0xff + (intervalTime >> 8) &
-    0xff + intervalTime &
-    0xff) &
-    0xff;
+            0xff + (durationTime >> 16) &
+            0xff + (durationTime >> 8) &
+            0xff + durationTime &
+            0xff + (intervalTime >> 24) &
+            0xff + (intervalTime >> 16) &
+            0xff + (intervalTime >> 8) &
+            0xff + intervalTime &
+            0xff) &
+        0xff;
 
     List<int> sentTime = [
       0xfe,
@@ -104,12 +95,8 @@ class EmsThreeFuncManager {
       valid
     ];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(sentTime,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(sentTime,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -123,17 +110,13 @@ class EmsThreeFuncManager {
   }
 
   /// 三路设备 发送剩余时间
-  static Future<void> sendRemainingTime(int remainTime,
-      CallBackWriteStatus callBackWriteStatus) async {
+  static Future<void> sendRemainingTime(
+      int remainTime, CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = remainTime & 0xff;
     List<int> sentTime = [0xfe, 0x04, 0x01, remainTime, valid];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(sentTime,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(sentTime,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -148,17 +131,17 @@ class EmsThreeFuncManager {
 
   /// 三路设备 设置一二三路最大与最小功率
   static Future<void> sendFrequencyMax(ThreeWayFrequencyType threeWayType,
-      int max, int min, CallBackWriteStatus callBackWriteStatus) async {
+      int max, int min, CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = ((max >> 24) &
-    0xff + (max >> 16) &
-    0xff + (max >> 8) &
-    0xff + max &
-    0xff + (min >> 24) &
-    0xff + (min >> 16) &
-    0xff + (min >> 8) &
-    0xff + min &
-    0xff) &
-    0xff;
+            0xff + (max >> 16) &
+            0xff + (max >> 8) &
+            0xff + max &
+            0xff + (min >> 24) &
+            0xff + (min >> 16) &
+            0xff + (min >> 8) &
+            0xff + min &
+            0xff) &
+        0xff;
     int instructions = 0x00;
     switch (threeWayType) {
       case ThreeWayFrequencyType.one:
@@ -186,13 +169,9 @@ class EmsThreeFuncManager {
       valid
     ];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
+      await ConnectManager.getInstance().writeCharacteristic?.write(
           sentFrequency,
-          withoutResponse: ConnectManager
-              .getInstance()
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -207,17 +186,17 @@ class EmsThreeFuncManager {
 
   /// 三路设备 设置一二三路最大与最小脉宽
   static Future<void> sendPulseWidthMax(ThreeWayPulseWidthType threeWayType,
-      int max, int min, CallBackWriteStatus callBackWriteStatus) async {
+      int max, int min, CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = ((max >> 24) &
-    0xff + (max >> 16) &
-    0xff + (max >> 8) &
-    0xff + max &
-    0xff + (min >> 24) &
-    0xff + (min >> 16) &
-    0xff + (min >> 8) &
-    0xff + min &
-    0xff) &
-    0xff;
+            0xff + (max >> 16) &
+            0xff + (max >> 8) &
+            0xff + max &
+            0xff + (min >> 24) &
+            0xff + (min >> 16) &
+            0xff + (min >> 8) &
+            0xff + min &
+            0xff) &
+        0xff;
     int instructions = 0x00;
     switch (threeWayType) {
       case ThreeWayPulseWidthType.one:
@@ -245,13 +224,9 @@ class EmsThreeFuncManager {
       valid
     ];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
+      await ConnectManager.getInstance().writeCharacteristic?.write(
           sentFrequency,
-          withoutResponse: ConnectManager
-              .getInstance()
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -266,17 +241,13 @@ class EmsThreeFuncManager {
 
   /// 下发三路强度
   static Future<void> sendStrength(int one, int two, int three,
-      CallBackWriteStatus callBackWriteStatus) async {
+      CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = (one + two + three) & 0xff;
     List<int> sendStrength = [0xfe, 0x08, 0x03, one, two, three, valid];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
+      await ConnectManager.getInstance().writeCharacteristic?.write(
           sendStrength,
-          withoutResponse: ConnectManager
-              .getInstance()
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -291,17 +262,12 @@ class EmsThreeFuncManager {
 
   /// 下发三路档位
   static Future<void> sendGear(int one, int two, int three,
-      CallBackWriteStatus callBackWriteStatus) async {
+      CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = (one + two + three) & 0xff;
     List<int> bytes = [0xfe, 0x08, 0x03, one, two, three, valid];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
-          bytes,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(bytes,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -315,24 +281,17 @@ class EmsThreeFuncManager {
   }
 
   /// 获取版本号
-  static Future<void> sendGetVersion(CallBackVersion callBackVersion) async {
-    ConnectManager
-        .getInstance()
-        .versionEventBus
-        .on<int>()
-        .listen((event) {
+  static Future<void> sendGetVersion(
+      CallBackVersionThree callBackVersion) async {
+    ConnectManager.getInstance().versionEventBus.on<int>().listen((event) {
       callBackVersion(true, event);
     });
 
     List<int> sendStrength = [0xfe, 0x0b, 0x00, 0x00];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
+      await ConnectManager.getInstance().writeCharacteristic?.write(
           sendStrength,
-          withoutResponse: ConnectManager
-              .getInstance()
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -345,18 +304,14 @@ class EmsThreeFuncManager {
   }
 
   /// 下发 开始1 暂停 2 停止 0
-  static Future<void> sendStart(int start,
-      CallBackWriteStatus callBackWriteStatus) async {
+  static Future<void> sendStart(
+      int start, CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = start & 0xff;
     List<int> sendStrength = [0xfe, 0x16, 0x01, start, valid];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
+      await ConnectManager.getInstance().writeCharacteristic?.write(
           sendStrength,
-          withoutResponse: ConnectManager
-              .getInstance()
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -370,13 +325,13 @@ class EmsThreeFuncManager {
   }
 
   /// 下发 强度缓冲时间
-  static Future<void> sendStrengthTime(int strengthTime,
-      CallBackWriteStatus callBackWriteStatus) async {
+  static Future<void> sendStrengthTime(
+      int strengthTime, CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = ((strengthTime >> 24) &
-    0xff + (strengthTime >> 16) &
-    0xff + (strengthTime >> 8) &
-    0xff + strengthTime) &
-    0xff;
+            0xff + (strengthTime >> 16) &
+            0xff + (strengthTime >> 8) &
+            0xff + strengthTime) &
+        0xff;
     List<int> bytes = [
       0xfe,
       0x09,
@@ -389,13 +344,8 @@ class EmsThreeFuncManager {
     ];
 
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
-          bytes,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(bytes,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -410,16 +360,11 @@ class EmsThreeFuncManager {
 
   /// 进入升级模式
   static Future<void> sendOtaMode(
-      CallBackWriteStatus callBackWriteStatus) async {
+      CallBackWriteStatusThree callBackWriteStatus) async {
     List<int> bytes = [0xfe, 0x21, 0x00, 0x00];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
-          bytes,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(bytes,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -433,16 +378,12 @@ class EmsThreeFuncManager {
   }
 
   /// 复位
-  static Future<void> sendReset(CallBackWriteStatus callBackWriteStatus) async {
+  static Future<void> sendReset(
+      CallBackWriteStatusThree callBackWriteStatus) async {
     List<int> bytes = [0xfe, 0x22, 0x00, 0x00];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
-          bytes,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(bytes,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -456,18 +397,13 @@ class EmsThreeFuncManager {
   }
 
   /// 设置 变频/变脉宽模式
-  static Future<void> sendFrequencyAndPulseWidthMode(int mode,
-      CallBackWriteStatus callBackWriteStatus) async {
+  static Future<void> sendFrequencyAndPulseWidthMode(
+      int mode, CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = mode & 0xff;
     List<int> bytes = [0xfe, 0x23, 0x01, mode, valid];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
-          bytes,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(bytes,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -481,18 +417,13 @@ class EmsThreeFuncManager {
   }
 
   /// 设置方波/正弦波模式
-  static Future<void> sendSquareSineMode(int mode,
-      CallBackWriteStatus callBackWriteStatus) async {
+  static Future<void> sendSquareSineMode(
+      int mode, CallBackWriteStatusThree callBackWriteStatus) async {
     int valid = mode & 0xff;
     List<int> bytes = [0xfe, 0x24, 0x01, mode, valid];
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(
-          bytes,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(bytes,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
@@ -506,8 +437,8 @@ class EmsThreeFuncManager {
   }
 
   /// 设置名字
-  static Future<void> sendSetName(List<int> name,
-      CallBackWriteStatus callBackWriteStatus) async {
+  static Future<void> sendSetName(
+      List<int> name, CallBackWriteStatusThree callBackWriteStatus) async {
     if (name.isEmpty || name.length > 10) {
       callBackWriteStatus(false);
     }
@@ -523,12 +454,8 @@ class EmsThreeFuncManager {
       print("设置名字结果:$sendSetName");
     }
     try {
-      await ConnectManager
-          .getInstance()
-          .writeCharacteristic
-          ?.write(sendSetName,
-          withoutResponse: ConnectManager
-              .getInstance()
+      await ConnectManager.getInstance().writeCharacteristic?.write(sendSetName,
+          withoutResponse: ConnectManager.getInstance()
               .writeCharacteristic!
               .properties
               .writeWithoutResponse);
