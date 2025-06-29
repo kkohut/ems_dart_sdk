@@ -467,4 +467,86 @@ class EmsThreeFuncManager {
       callBackWriteStatus(false);
     }
   }
+
+  static List addElementFromInt(int value, List<int> bytes, int adder) {
+    for (int shift in [0, 8, 16, 24]) {
+      int element = (value >> shift) & 0xff;
+      adder += element;
+      bytes.add(element);
+    }
+    return [adder, bytes];
+  }
+
+  /**
+   * 设置基础参数
+   */
+  static Future<void> sendBaseParameters(
+      int frequencyMax1,
+      int frequencyMin1,
+      int pulseWidthMax1,
+      int pulseWidthMin1,
+      int frequencyMax2,
+      int frequencyMin2,
+      int pulseWidthMax2,
+      int pulseWidthMin2,
+      int frequencyMax3,
+      int frequencyMin3,
+      int pulseWidthMax3,
+      int pulseWidthMin3,
+      int durationTime,
+      int gapTime,
+      int bufferTime,
+      int modeVariableFrequencyOrPulseWidth,
+      int modeWaveSquareOrSine,
+      CallBackWriteStatusThree callBackWriteStatus) async {
+    List<int> bytes = [0xfe, 0x26, 64]; // 注意64为10进制
+
+    List values = [
+      frequencyMax1,
+      frequencyMin1,
+      pulseWidthMax1,
+      pulseWidthMin1,
+      frequencyMax2,
+      frequencyMin2,
+      pulseWidthMax2,
+      pulseWidthMin2,
+      frequencyMax3,
+      frequencyMin3,
+      pulseWidthMax3,
+      pulseWidthMin3,
+      durationTime,
+      gapTime,
+      bufferTime
+    ];
+
+    int num = 0;
+    for (var value in values) {
+      List result = addElementFromInt(value, bytes, num);
+      num = result[0];
+      bytes = result[1];
+    }
+
+    num = num + modeVariableFrequencyOrPulseWidth;
+    bytes.add(modeVariableFrequencyOrPulseWidth);
+
+    num = num + modeWaveSquareOrSine;
+    bytes.add(modeWaveSquareOrSine);
+
+    int valid = num & 0xff;
+    bytes.add(valid);
+
+    try {
+      await ConnectManager.getInstance().writeCharacteristic?.write(bytes,
+          withoutResponse: ConnectManager.getInstance()
+              .writeCharacteristic!
+              .properties
+              .writeWithoutResponse);
+      callBackWriteStatus(true);
+    } catch (e) {
+      if (kDebugMode) {
+        print("Write Error:");
+      }
+      callBackWriteStatus(false);
+    }
+  }
 }
